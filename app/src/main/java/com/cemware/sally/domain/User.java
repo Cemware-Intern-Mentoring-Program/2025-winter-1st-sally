@@ -1,31 +1,34 @@
 package com.cemware.sally.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Entity                     // 이 클래스가 JPA 엔티티임을 선언
-@Table(name = "users")      // 실제 DB 테이블명 (USER는 예약어라 users 추천)
+@Entity                     // JPA가 관리하는 엔티티임을 선언
+@Table(name = "users")      // 매핑될 테이블 이름
+@Getter                     // 모든 필드에 대한 getter 자동 생성
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+// JPA가 프록시 생성을 위해 기본 생성자를 필요로 함.
+// 외부에서 new User() 못하게 PROTECTED로 막음.
 public class User {
 
-    @Id                     // PK(primary key)
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // MySQL의 AUTO_INCREMENT를 사용해 id 자동 증가
-    private Long id;
+    private Long id;        // PK (자동 증가)
 
     @Column(nullable = false, length = 50)
-    // nullable=false → username은 반드시 값이 있어야 함(Not Null)
-    // length=50 → varchar(50) 설정
-    private String username;
+    private String username;    // 유저 이름
 
-    // 기본 생성자 (JPA가 엔티티를 만들 때 반드시 필요)
-    protected User() {}
-
-    // 편의를 위한 생성자
+    // 도메인 생성자
+    // 엔티티 생성 시 필요한 값만 받도록 설계
     public User(String username) {
         this.username = username;
     }
 
-    // Getter/Setter (Lombok 안 쓴 버전)
-    public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    // setter 대신 update 메서드 제공
+    // "username이라는 상태를 변경한다"는 의미를 명확히 표현
+    public void updateUsername(String username) {
+        this.username = username;
+    }
 }
