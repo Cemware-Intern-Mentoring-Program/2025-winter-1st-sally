@@ -2,6 +2,7 @@ package com.cemware.sally.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,8 +18,6 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;   // PK
 
-    // Task 여러개는 하나의 Group에 소속됨 → ManyToOne
-    // 마찬가지로 LAZY 사용해 성능 최적화
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
@@ -29,18 +28,19 @@ public class Task {
     @Column(columnDefinition = "text")
     private String description;    // 내용 (길이 제한 없음)
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;         // 상태 (예: TODO, DOING, DONE)
+    private TaskStatus status;     // 상태 (TODO, DOING, DONE)
 
     @Column(name = "due_date")
     private LocalDate dueDate;     // 마감일
 
-    // 도메인 생성자
-    // Task는 생성 시 어떤 값들이 반드시 필요한지 정의
+    // 도메인 생성자 + Builder
+    @Builder
     public Task(Group group,
                 String title,
                 String description,
-                String status,
+                TaskStatus status,
                 LocalDate dueDate) {
 
         this.group = group;
@@ -50,8 +50,7 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    // 엔티티의 "상태 변경" 메서드
-    // setter 대신 update 메서드 사용
+    // 상태 변경 메서드들
     public void updateGroup(Group group) {
         this.group = group;
     }
@@ -64,7 +63,7 @@ public class Task {
         this.description = description;
     }
 
-    public void updateStatus(String status) {
+    public void updateStatus(TaskStatus status) {
         this.status = status;
     }
 
@@ -72,4 +71,3 @@ public class Task {
         this.dueDate = dueDate;
     }
 }
-
