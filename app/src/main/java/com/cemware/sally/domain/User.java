@@ -2,8 +2,10 @@ package com.cemware.sally.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 
 @Entity                     // JPA가 관리하는 엔티티임을 선언
 @Table(name = "users")      // 매핑될 테이블 이름
@@ -20,8 +22,8 @@ public class User {
     @Column(nullable = false, length = 50)
     private String username;    // 유저 이름
 
-    // 도메인 생성자
-    // 엔티티 생성 시 필요한 값만 받도록 설계
+    // Builder + 도메인 생성자
+    @Builder
     public User(String username) {
         this.username = username;
     }

@@ -7,35 +7,30 @@ import com.cemware.sally.repository.TaskRepository;
 import com.cemware.sally.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 @Service                    // 스프링이 서비스 빈으로 관리
 @Transactional              // 메서드 전체를 하나의 트랜잭션으로 처리
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final TaskRepository taskRepository;
 
-    // 생성자 주입 (스프링이 자동으로 Repository 넣어줌)
-    public UserService(UserRepository userRepository,
-                       GroupRepository groupRepository,
-                       TaskRepository taskRepository) {
-        this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
-        this.taskRepository = taskRepository;
-    }
-
     //1. 유저 생성하기 (1건)
     public Long createUser(String username) {
         // 1) 엔티티 생성
-        User user = new User(username);
+        User user = User.builder()
+                .username(username)
+                .build();
 
         // 2) 저장
         User saved = userRepository.save(user);
 
-        // 3) 생성된 PK 반환
+        // 3) 반환된 전체 엔티티에서 PK(ID)만 꺼내서 반환
         return saved.getId();
     }
 
@@ -73,14 +68,14 @@ public class UserService {
     }
 
     //4. 유저 불러오기 (1건)
-    @Transactional(readOnly = true)
+    @Transactional
     public User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId));
     }
 
     //5. 유저 그룹 불러오기 (유저가 만든 그룹 전체 불러오기)
-    @Transactional(readOnly = true)
+    @Transactional
     public List<Group> getUserGroups(Long userId) {
         // 유저가 존재하는지 체크하고 싶다면 한 번 조회 (선택)
         if (!userRepository.existsById(userId)) {

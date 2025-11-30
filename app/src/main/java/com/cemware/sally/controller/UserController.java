@@ -2,7 +2,13 @@ package com.cemware.sally.controller;
 
 import com.cemware.sally.domain.Group;
 import com.cemware.sally.domain.User;
+import com.cemware.sally.dto.group.GroupResponse;
+import com.cemware.sally.dto.user.CreateUserRequest;
+import com.cemware.sally.dto.user.CreateUserResponse;
+import com.cemware.sally.dto.user.UpdateUserRequest;
+import com.cemware.sally.dto.user.UserResponse;
 import com.cemware.sally.service.UserService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +26,7 @@ public class UserController {
     @PostMapping
     public CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
         // 서비스 호출해서 유저 생성
-        Long userId = userService.createUser(request.getUsername());
+        Long userId = userService.createUser(request.username());
         // 생성된 유저의 id를 응답 DTO로 감싸서 반환
         return new CreateUserResponse(userId);
     }
@@ -30,7 +36,7 @@ public class UserController {
     public void updateUser(@PathVariable("id") Long userId,
                            @RequestBody UpdateUserRequest request) {
         // 경로에서 받은 id와, body에서 받은 username으로 수정
-        userService.updateUser(userId, request.getUsername());
+        userService.updateUser(userId, request.username());
     }
 
     //3. 유저 삭제하기 (DELETE /users/{id}, 하위 그룹 및 할 일 삭제)
@@ -55,92 +61,6 @@ public class UserController {
         return groups.stream()
                 .map(g -> new GroupResponse(g.getId(), g.getName(), g.getDescription()))
                 .collect(Collectors.toList());
-    }
-
-    /* ===== 요청/응답에 사용할 DTO 클래스들 ===== */
-
-    // 유저 생성 요청 바디: { "username": "홍길동" }
-    public static class CreateUserRequest {
-        private String username;
-
-        public String getUsername() {
-            return username;
-        }
-        public void setUsername(String username) {
-            this.username = username;
-        }
-    }
-
-    // 유저 수정 요청 바디: { "username": "새이름" }
-    public static class UpdateUserRequest {
-        private String username;
-
-        public String getUsername() {
-            return username;
-        }
-        public void setUsername(String username) {
-            this.username = username;
-        }
-    }
-
-    // 유저 생성 응답: { "id": 1 }
-    public static class CreateUserResponse {
-        private Long id;
-
-        public CreateUserResponse(Long id) {
-            this.id = id;
-        }
-
-        public Long getId() {
-            return id;
-        }
-    }
-
-    // 유저 조회 응답: { "id": 1, "username": "홍길동" }
-    public static class UserResponse {
-        private Long id;
-        private String username;
-
-        public UserResponse(Long id, String username) {
-            this.id = id;
-            this.username = username;
-        }
-
-        public Long getId() {
-            return id;
-        }
-        public String getUsername() {
-            return username;
-        }
-    }
-
-    // 유저 그룹 목록 응답 DTO
-    public static class GroupResponse {
-        private Long id;
-        private String name;
-        private String description;
-
-        public GroupResponse(Long id, String name, String description) {
-            this.id = id;
-            this.name = name;
-            this.description = description;
-        }
-
-        public Long getId() {
-            return id;
-        }
-        public String getName() {
-            return name;
-        }
-        public String getDescription() {
-            return description;
-        }
-    }
-
-    //컨트롤러 연결 확인용
-    @GetMapping("/ping")
-    public String ping() {
-        return "ok";
     }
 
 }

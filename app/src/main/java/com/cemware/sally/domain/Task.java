@@ -1,5 +1,7 @@
 package com.cemware.sally.domain;
 
+import com.cemware.sally.dto.task.TaskUpdateDto;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -69,5 +71,12 @@ public class Task {
 
     public void updateDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public void updateByDto(TaskUpdateDto dto) {
+        this.title = dto.title();
+        this.description = dto.description();
+        this.status = dto.status();
+        this.dueDate = dto.dueDate();
     }
 }

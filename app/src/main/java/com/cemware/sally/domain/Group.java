@@ -2,6 +2,7 @@ package com.cemware.sally.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,8 +28,8 @@ public class Group {
     @Column(length = 255)
     private String description; // 그룹 설명
 
-    // 생성 시 필요한 필드만 받는 생성자
-    // 이 생성자를 통해서만 Group을 생성하도록 설계
+    // 도메인 생성자 + Builder
+    @Builder
     public Group(User user, String name, String description) {
         this.user = user;
         this.name = name;
