@@ -1,0 +1,86 @@
+### 1. 유저 생성 (POST /users)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "username": "홍길동"
+}
+
+### 2. 유저 조회 (GET /users/1)
+GET http://localhost:8080/users/1
+
+
+### 3. 유저 이름 수정 (PUT /users/1)
+PUT http://localhost:8080/users/1
+Content-Type: application/json
+
+{
+  "username": "임꺽정"
+}
+
+### 4. 유저 그룹 조회
+GET http://localhost:8080/users/1/groups
+
+### 5. 유저 삭제 (DELETE /users/1)
+DELETE http://localhost:8080/users/1
+
+
+
+
+
+### 6. 그룹 생성 (POST /groups)
+POST http://localhost:8080/groups
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "name": "공부",
+  "description": "공부용 그룹입니다"
+}
+
+### 7. 그룹 조회 (GET /groups/1)
+GET http://localhost:8080/groups/1
+
+### 8. 그룹 이름 수정 (PUT /groups/1)
+PUT http://localhost:8080/groups/1
+Content-Type: application/json
+
+{
+  "name": "공부(수정)"
+}
+
+### 9. 그룹 삭제 (DELETE /groups/1)
+DELETE http://localhost:8080/groups/1
+
+
+
+
+
+### 10. 할 일 생성
+POST http://localhost:8080/tasks
+Content-Type: application/json
+
+{
+  "groupId": 1,
+  "title": "JPA 공부하기",
+  "description": "연관관계 복습",
+  "status": "TODO",
+  "dueDate": "2025-12-31"
+}
+
+### 11. 할 일 조회
+GET http://localhost:8080/tasks/1
+
+### 12. 할 일 수정
+PUT http://localhost:8080/tasks/1
+Content-Type: application/json
+
+{
+  "title": "JPA 공부하기(수정)",
+  "description": "연관관계 + 트랜잭션",
+  "status": "DOING",
+  "dueDate": "2026-01-01"
+}
+
+### 13. 할 일 삭제
+DELETE http://localhost:8080/tasks/1
