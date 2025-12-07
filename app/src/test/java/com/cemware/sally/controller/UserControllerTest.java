@@ -1,6 +1,5 @@
 package com.cemware.sally.controller;
 
-import com.cemware.sally.dto.user.CreateUserRequest;
 import com.cemware.sally.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
