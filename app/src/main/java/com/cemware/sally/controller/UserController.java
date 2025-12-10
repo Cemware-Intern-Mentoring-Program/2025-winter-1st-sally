@@ -8,6 +8,8 @@ import com.cemware.sally.dto.user.CreateUserResponse;
 import com.cemware.sally.dto.user.UpdateUserRequest;
 import com.cemware.sally.dto.user.UserResponse;
 import com.cemware.sally.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -34,33 +36,42 @@ public class UserController {
     //2. 유저 수정하기 (PUT /users/{id})
     @PutMapping("/{id}")
     public void updateUser(@PathVariable("id") Long userId,
-                           @RequestBody UpdateUserRequest request) {
+                           @RequestBody UpdateUserRequest request,
+                           @AuthenticationPrincipal UserDetails user) {
         // 경로에서 받은 id와, body에서 받은 username으로 수정
-        userService.updateUser(userId, request.username());
+        userService.updateUserForUser(userId, request.username(), user.getUsername());
     }
 
     //3. 유저 삭제하기 (DELETE /users/{id}, 하위 그룹 및 할 일 삭제)
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable("id") Long userId) {
-        userService.deleteUser(userId);
+    public void deleteUser(@PathVariable("id") Long userId,
+                           @AuthenticationPrincipal UserDetails user) {
+        userService.deleteUserForUser(userId,  user.getUsername());
     }
 
     //4. 유저 불러오기 (GET /users/{id})
     @GetMapping("/{id}")
-    public UserResponse getUser(@PathVariable("id") Long userId) {
-        User user = userService.getUser(userId);
-        return new UserResponse(user.getId(), user.getUsername());
+    public UserResponse getUser(@PathVariable("id") Long userId,
+                                @AuthenticationPrincipal UserDetails user) {
+        User found = userService.getUserForUser(userId, user.getUsername());
+        return new UserResponse(found.getId(), found.getUsername());
     }
 
     //5. 유저 그룹 불러오기 (GET /users/{id}/groups)
     @GetMapping("/{id}/groups")
-    public List<GroupResponse> getUserGroups(@PathVariable("id") Long userId) {
-        List<Group> groups = userService.getUserGroups(userId);
+    public List<GroupResponse> getUserGroups(@PathVariable("id") Long userId,
+                                             @AuthenticationPrincipal UserDetails user) {
+        List<Group> groups = userService.getUserGroupsForUser(userId, user.getUsername());
 
         // 엔티티 Group → 응답용 DTO로 변환
         return groups.stream()
                 .map(g -> new GroupResponse(g.getId(), g.getName(), g.getDescription()))
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/me")
+    public String me(@AuthenticationPrincipal UserDetails user) {
+        return "current user = " + user.getUsername();
     }
 
 }

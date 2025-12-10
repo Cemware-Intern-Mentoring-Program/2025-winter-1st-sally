@@ -66,6 +66,53 @@ public class GroupService {
         groupRepository.delete(group);
     }
 
+    // 새로 추가: 로그인한 유저의 username으로 그룹 생성
+    public Long createGroupByUsername(String username, String name, String description) {
+        // 1) username으로 유저 조회
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. username=" + username));
+
+        // 2) Group 엔티티 생성
+        Group group = Group.builder()
+                .user(user)              // ← 기존 엔티티 그대로 사용
+                .name(name)
+                .description(description)
+                .build();
+
+        // 3) 저장 후 ID 반환
+        Group saved = groupRepository.save(group);
+        return saved.getId();
+    }
+
+    //  로그인한 사용자 기준으로 그룹 이름 수정
+    public void updateGroupNameForUser(Long groupId, String newName, String username) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("그룹이 존재하지 않습니다. id=" + groupId));
+
+        // 소유자 검증
+        if (!group.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("다른 사용자의 그룹은 수정할 수 없습니다.");
+        }
+
+        group.updateName(newName);
+    }
+
+    // 로그인한 사용자 기준으로 그룹 삭제
+    public void deleteGroupForUser(Long groupId, String username) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("그룹이 존재하지 않습니다. id=" + groupId));
+
+        if (!group.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("다른 사용자의 그룹은 삭제할 수 없습니다.");
+        }
+
+        // 이 그룹에 속한 Task 전부 삭제
+        taskRepository.deleteByGroupId(groupId);
+
+        groupRepository.delete(group);
+    }
+
+
     //4. 그룹 불러오기 (아래 할 일task 함께 불러오기)
     //- 그룹 정보 + 해당 그룹에 속한 Task 목록을 함께 반환
     @Transactional
@@ -78,6 +125,21 @@ public class GroupService {
         List<Task> tasks = taskRepository.findByGroupId(groupId);
 
         // 3) 둘을 한 번에 담아서 반환
+        return new GroupWithTasksDto(group, tasks);
+    }
+
+    // 로그인한 사용자 기준으로 그룹 + 할 일 조회
+    @Transactional
+    public GroupWithTasksDto getGroupWithTasksForUser(Long groupId, String username) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("그룹이 존재하지 않습니다. id=" + groupId));
+
+        if (!group.getUser().getUsername().equals(username)) {
+            throw new IllegalArgumentException("다른 사용자의 그룹은 조회할 수 없습니다.");
+        }
+
+        List<Task> tasks = taskRepository.findByGroupId(groupId);
+
         return new GroupWithTasksDto(group, tasks);
     }
 }

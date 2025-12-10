@@ -6,36 +6,47 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import com.cemware.sally.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // 1. CSRF(Cross-Site Request Forgery) 보호 기능 비활성화
-                /* - REST API / Postman 테스트 / 프론트 분리 환경에서는 CSRF 토큰이 필요하지 않음
-                 * - 세션 기반 로그인(form POST) 서비스가 아니므로 disable 하는 것이 일반적
-                 */
+                // 1) 서버에서 세션, CSRF, 기본 로그인 모두 끄기
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // 2. URL 별 권한 규칙
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                // 2) 세션 안 쓰고 매 요청을 독립 처리 (JWT 구조 준비)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 3) URL 접근 규칙
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("ADMIN")  // 관리자: ROLE_ADMIN 있어야 접근 가능
-                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN") // 사용자: ROLE_USER 또는 ROLE_ADMIN 있어야 접근 가능
-                        .anyRequest().permitAll()  // 나머지는 모두 허용
+                        .requestMatchers("/auth/login", "/auth/signup").permitAll()
+                        .anyRequest().authenticated()   // 나머지는 인증 필요 (나중에 JWT로)
                 )
-
-                // 3. 기본 로그인 폼 사용
-                .formLogin(Customizer.withDefaults()) // Spring Security 기본 로그인 페이지 자동 제공
-
-                // 4. 기본 로그아웃 사용
-                .logout(Customizer.withDefaults()); // 기본 로그아웃 기능 사용
+                // UsernamePasswordAuthenticationFilter 전에 우리 필터를 실행
+                .addFilterBefore(jwtAuthenticationFilter,
+                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // 비밀번호 암호화용 Bean
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
 

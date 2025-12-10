@@ -9,6 +9,8 @@ import com.cemware.sally.dto.group.GroupWithTasksDto;
 import com.cemware.sally.dto.group.UpdateGroupNameRequest;
 import com.cemware.sally.dto.task.TaskResponse;
 import com.cemware.sally.service.GroupService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +27,12 @@ public class GroupController {
     //1. 그룹 생성하기 (POST /groups)
     //- 어떤 유저(userId)가 name, description으로 새 그룹을 만든다.
     @PostMapping
-    public CreateGroupResponse createGroup(@RequestBody CreateGroupRequest request) {
-        Long groupId = groupService.createGroup(
-                request.userId(),
+    public CreateGroupResponse createGroup(
+            @RequestBody CreateGroupRequest request,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        Long groupId = groupService.createGroupByUsername(
+                user.getUsername(),
                 request.name(),
                 request.description()
         );
@@ -36,22 +41,31 @@ public class GroupController {
 
     //2. 그룹 이름 수정하기 (PUT /groups/{id})
     @PutMapping("/{id}")
-    public void updateGroupName(@PathVariable("id") Long groupId,
-                                @RequestBody UpdateGroupNameRequest request) {
-        groupService.updateGroupName(groupId, request.name());
+    public void updateGroupName(
+            @PathVariable("id") Long groupId,
+            @RequestBody UpdateGroupNameRequest request,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        groupService.updateGroupNameForUser(groupId, request.name(), user.getUsername());
     }
 
     //3. 그룹 삭제하기 (DELETE /groups/{id}, 하위 할 일 삭제)
     @DeleteMapping("/{id}")
-    public void deleteGroup(@PathVariable("id") Long groupId) {
-        groupService.deleteGroup(groupId);
+    public void deleteGroup(
+            @PathVariable("id") Long groupId,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        groupService.deleteGroupForUser(groupId, user.getUsername());
     }
 
     //4. 그룹 불러오기 (GET /groups/{id})
     //- 그룹 정보 + 하위 할 일(Task) 목록을 함께 반환
     @GetMapping("/{id}")
-    public GroupDetailResponse getGroup(@PathVariable("id") Long groupId) {
-        GroupWithTasksDto result = groupService.getGroupWithTasks(groupId);
+    public GroupDetailResponse getGroup(
+            @PathVariable("id") Long groupId,
+            @AuthenticationPrincipal UserDetails user
+    ) {
+        GroupWithTasksDto result = groupService.getGroupWithTasksForUser(groupId, user.getUsername());
 
         Group group = result.group();
         List<Task> tasks = result.tasks();
@@ -75,5 +89,4 @@ public class GroupController {
                 taskResponses
         );
     }
-
 }

@@ -1,86 +1,90 @@
-### 1. 유저 생성 (POST /users)
-POST http://localhost:8080/users
+### 0-1. 회원가입
+POST http://localhost:8080/auth/signup
 Content-Type: application/json
 
 {
-  "username": "홍길동"
+  "username": "testuser",
+  "password": "1234"
 }
 
-### 2. 유저 조회 (GET /users/1)
-GET http://localhost:8080/users/1
-
-
-### 3. 유저 이름 수정 (PUT /users/1)
-PUT http://localhost:8080/users/1
+### 0-2. 로그인 (토큰 발급)
+POST http://localhost:8080/auth/login
 Content-Type: application/json
 
 {
-  "username": "임꺽정"
+  "username": "testuser",
+  "password": "1234"
 }
 
-### 4. 유저 그룹 조회
-GET http://localhost:8080/users/1/groups
-
-### 5. 유저 삭제 (DELETE /users/1)
-DELETE http://localhost:8080/users/1
+### 1-1. 토큰 없이 /test (막혀야 정상)
+GET http://localhost:8080/test
 
 
-
-
-
-### 6. 그룹 생성 (POST /groups)
+### 2-1. JWT로 그룹 생성 (POST /groups)
 POST http://localhost:8080/groups
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTc2NTM2NDA5MywiZXhwIjoxNzY1MzY3NjkzfQ.CDjpq8XfjI89veitfBYC4-UVFoBGc3Ie-R8KVsvIHz4
 Content-Type: application/json
 
 {
-  "userId": 1,
-  "name": "공부",
-  "description": "공부용 그룹입니다"
+  "userId": 999,             // 지금은 무시됨
+  "name": "첫 번째 그룹",
+  "description": "JWT로 만든 그룹입니다."
 }
 
-### 7. 그룹 조회 (GET /groups/1)
+### 2-2. 그룹 상세 조회 (GET /groups/{id})
 GET http://localhost:8080/groups/1
-
-### 8. 그룹 이름 수정 (PUT /groups/1)
-PUT http://localhost:8080/groups/1
-Content-Type: application/json
-
-{
-  "name": "공부(수정)"
-}
-
-### 9. 그룹 삭제 (DELETE /groups/1)
-DELETE http://localhost:8080/groups/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTc2NTM2MzgwMywiZXhwIjoxNzY1MzY3NDAzfQ.pdq7bDHURUrILfAplzyRRw_nRmrJA_n_QAGwTyBoFWI
 
 
-
-
-
-### 10. 할 일 생성
+### 3-1. JWT로 할 일 생성 (POST /tasks)
 POST http://localhost:8080/tasks
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTc2NTM2MzgwMywiZXhwIjoxNzY1MzY3NDAzfQ.pdq7bDHURUrILfAplzyRRw_nRmrJA_n_QAGwTyBoFWI
 Content-Type: application/json
 
 {
   "groupId": 1,
-  "title": "JPA 공부하기",
-  "description": "연관관계 복습",
-  "status": "TODO",
-  "dueDate": "2025-12-31"
+  "title": "JWT 연동 테스트 할 일",
+  "description": "내 그룹에만 생성돼야 합니다.",
+  "status": "TODO",           // TaskStatus enum 값과 맞춰서 사용
+  "dueDate": "2025-12-31"     // LocalDate 형식
 }
 
-### 11. 할 일 조회
-GET http://localhost:8080/tasks/1
 
-### 12. 할 일 수정
-PUT http://localhost:8080/tasks/1
+### 4-1. 할 일 단건 조회 (GET /tasks/{id})
+GET http://localhost:8080/tasks/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTc2NTM2MzgwMywiZXhwIjoxNzY1MzY3NDAzfQ.pdq7bDHURUrILfAplzyRRw_nRmrJA_n_QAGwTyBoFWI
+
+### 4-2. 그룹 상세 + 할 일 목록 다시 조회
+GET http://localhost:8080/groups/1
+Authorization: Bearer ▶같은_토큰◀
+
+### 5-1-1. 회원가입 (user2)
+POST http://localhost:8080/auth/signup
 Content-Type: application/json
 
 {
-  "title": "JPA 공부하기(수정)",
-  "description": "연관관계 + 트랜잭션",
-  "status": "DOING",
-  "dueDate": "2026-01-01"
+  "username": "user2",
+  "password": "1234"
 }
 
-### 13. 할 일 삭제
-DELETE http://localhost:8080/tasks/1
+### 5-1-2. 로그인 (user2)
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "username": "user2",
+  "password": "1234"
+}
+
+### 5-1-3. user2 토큰으로 남의 그룹에 Task 생성 시도
+POST http://localhost:8080/tasks
+Authorization: Bearer ▶user2_accessToken◀
+Content-Type: application/json
+
+{
+  "groupId": 1,                 // testuser의 그룹
+  "title": "남의 그룹에 생성 시도",
+  "description": "실패해야 정상",
+  "status": "TODO",
+  "dueDate": "2025-12-31"
+}

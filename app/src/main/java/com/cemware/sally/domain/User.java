@@ -19,13 +19,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;        // PK (자동 증가)
 
-    @Column(nullable = false, length = 50)
-    private String username;    // 유저 이름
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;            // 로그인 ID
+
+    @Column(nullable = false)
+    private String password;            // 암호화된 비밀번호
+
+    @Column(nullable = false, length = 20)
+    private String role;                // 예: "USER"
 
     // Builder + 도메인 생성자
     @Builder
-    public User(String username) {
+    public User(String username, String password, String role) {
         this.username = username;
+        this.password = password;       // 암호화된 비번으로 저장할 예정
+        this.role = role;
     }
 
     // setter 대신 update 메서드 제공

@@ -20,6 +20,12 @@ public class UserService {
     private final GroupRepository groupRepository;
     private final TaskRepository taskRepository;
 
+    // username으로 유저 조회 (공통 유틸)
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. username=" + username));
+    }
+
     //1. 유저 생성하기 (1건)
     public Long createUser(String username) {
         // 1) 엔티티 생성
@@ -45,6 +51,17 @@ public class UserService {
         // @Transactional 덕분에 메서드 종료 시점에 변경 내용 자동 flush (더티 체킹)
     }
 
+    // 로그인한 사용자가 자기 자신만 수정할 수 있도록
+    public void updateUserForUser(Long userId, String newUsername, String currentUsername) {
+        User currentUser = getUserByUsername(currentUsername);
+
+        if (!currentUser.getId().equals(userId)) {
+            throw new IllegalArgumentException("다른 사용자의 정보는 수정할 수 없습니다.");
+        }
+
+        currentUser.updateUsername(newUsername);
+    }
+
     //3. 유저 삭제하기 (1건, 하위 그룹 및 할 일 삭제)
     public void deleteUser(Long userId) {
         // 1) 유저 존재 여부 확인
@@ -67,11 +84,35 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    // 로그인한 사용자가 자기 자신만 삭제할 수 있도록
+    public void deleteUserForUser(Long userId, String currentUsername) {
+        User currentUser = getUserByUsername(currentUsername);
+
+        if (!currentUser.getId().equals(userId)) {
+            throw new IllegalArgumentException("다른 사용자의 정보는 삭제할 수 없습니다.");
+        }
+
+        // 검증 통과했으니 기존 deleteUser 재사용
+        deleteUser(userId);
+    }
+
     //4. 유저 불러오기 (1건)
     @Transactional
     public User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId));
+    }
+
+    // 로그인한 사용자가 자기 자신만 조회할 수 있도록
+    @Transactional
+    public User getUserForUser(Long userId, String currentUsername) {
+        User currentUser = getUserByUsername(currentUsername);
+
+        if (!currentUser.getId().equals(userId)) {
+            throw new IllegalArgumentException("다른 사용자의 정보는 조회할 수 없습니다.");
+        }
+
+        return currentUser; // 또는 getUser(userId) 호출해도 됨
     }
 
     //5. 유저 그룹 불러오기 (유저가 만든 그룹 전체 불러오기)
@@ -80,6 +121,18 @@ public class UserService {
         // 유저가 존재하는지 체크하고 싶다면 한 번 조회 (선택)
         if (!userRepository.existsById(userId)) {
             throw new IllegalArgumentException("유저가 존재하지 않습니다. id=" + userId);
+        }
+
+        return groupRepository.findByUserId(userId);
+    }
+
+    // 로그인한 사용자 기준으로 그룹 목록 조회
+    @Transactional
+    public List<Group> getUserGroupsForUser(Long userId, String currentUsername) {
+        User currentUser = getUserByUsername(currentUsername);
+
+        if (!currentUser.getId().equals(userId)) {
+            throw new IllegalArgumentException("다른 사용자의 그룹 목록은 조회할 수 없습니다.");
         }
 
         return groupRepository.findByUserId(userId);
