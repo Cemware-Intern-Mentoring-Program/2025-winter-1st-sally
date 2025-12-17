@@ -24,14 +24,14 @@ public class UserController {
 
     private final UserService userService;   // 서비스 계층 의존
 
-    //1. 유저 생성하기 (POST /users)
-    @PostMapping
-    public CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
-        // 서비스 호출해서 유저 생성
-        Long userId = userService.createUser(request.username());
-        // 생성된 유저의 id를 응답 DTO로 감싸서 반환
-        return new CreateUserResponse(userId);
-    }
+//    //1. 유저 생성하기 (POST /users)
+//    @PostMapping
+//    public CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
+//        // 서비스 호출해서 유저 생성
+//        Long userId = userService.createUser(request.username());
+//        // 생성된 유저의 id를 응답 DTO로 감싸서 반환
+//        return new CreateUserResponse(userId);
+//    }
 
     //2. 유저 수정하기 (PUT /users/{id})
     @PutMapping("/{id}")

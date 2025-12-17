@@ -33,7 +33,13 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 3) URL 접근 규칙
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/signup").permitAll()
+                        .requestMatchers(
+                                "/auth/login",
+                                "/auth/signup",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest().authenticated()   // 나머지는 인증 필요 (나중에 JWT로)
                 )
                 // UsernamePasswordAuthenticationFilter 전에 우리 필터를 실행

@@ -26,19 +26,19 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다. username=" + username));
     }
 
-    //1. 유저 생성하기 (1건)
-    public Long createUser(String username) {
-        // 1) 엔티티 생성
-        User user = User.builder()
-                .username(username)
-                .build();
-
-        // 2) 저장
-        User saved = userRepository.save(user);
-
-        // 3) 반환된 전체 엔티티에서 PK(ID)만 꺼내서 반환
-        return saved.getId();
-    }
+//    //1. 유저 생성하기 (1건)
+//    public Long createUser(String username) {
+//        // 1) 엔티티 생성
+//        User user = User.builder()
+//                .username(username)
+//                .build();
+//
+//        // 2) 저장
+//        User saved = userRepository.save(user);
+//
+//        // 3) 반환된 전체 엔티티에서 PK(ID)만 꺼내서 반환
+//        return saved.getId();
+//    }
 
     //2. 유저 수정하기 (1건)
     public void updateUser(Long userId, String newUsername) {
