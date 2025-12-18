@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: sally
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/데베1
+    username: root
+    password: coguswl1!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+
+jwt:
+  secret: "THIS_IS_VERY_LONG_RANDOM_SECRET_KEY_CHANGE_ME_1234567890"
+  expiration: 3600000   # 1시간 (밀리초)
+
+
